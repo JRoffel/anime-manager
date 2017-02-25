@@ -1,0 +1,17 @@
+{
+  "name": "kissanime-download-server",
+  "version": "0.0.1",
+  "description": "Download anime from kissanime",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "JRoffel",
+  "license": "ISC",
+  "dependencies": {
+    "anime-scraper": "^2.1.5",
+    "cheerio": "^0.22.0",
+    "cloudscraper": "^1.4.1"
+  }
+}

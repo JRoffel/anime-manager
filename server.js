@@ -77,20 +77,28 @@ function getAnime() {
 							epi.fetch().then(function(episode) {
 								episodeName = fileSanitizer(episode.name);
 								if(!fs.existsSync(path.join(basePath, dirName, episodeName + ".mp4"))) {
-									var file = fs.createWriteStream(path.join(basePath, dirName, episodeName + ".mp4"));
-									console.log("Downloading: " + path.join(basePath, dirName, episodeName));
 									var options = {
 										hostname: episode.video_links[0].url,
 										method: 'GET'
 									}
-									request(episode.video_links[0].url).pipe(file);
-									cb(null);
+									var req = request(episode.video_links[0].url)
+									.on('response', function(res) {
+										file = fs.createWriteStream(path.join(basePath, dirName, episodeName + ".mp4"));
+										res.pipe(file);
+
+									})
+									.on('end', function() {
+										console.log("Downloaded: " + path.join(basePath, dirName, episodeName));
+										cb(null);
+									})
 								} else {
-									console.log("Skipping: " + episodeName + " Becasue it already exists");
+									console.log("Skipping: " + episodeName + " Because it already exists");
+									cb(null);
 								}
 							});
+						}, function(err) {
+							callback(null);
 						});
-						callback(null);
 					});
 				});
 			}

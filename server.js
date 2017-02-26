@@ -31,7 +31,8 @@ rl.question('Where do you want the downloader to save all your anime? ', (answer
 	}
 });
 
-function getAnime() {	
+function getAnime() {
+	var iterator = 0;
 	rl.question('Please give your kissanime bookmarklist url: ', (answer) => {
 		cloudscraper.get(answer.toString(), function(err, res, body) {
 			if(err) {
@@ -77,18 +78,21 @@ function getAnime() {
 							epi.fetch().then(function(episode) {
 								episodeName = fileSanitizer(episode.name);
 								if(!fs.existsSync(path.join(basePath, dirName, episodeName + ".mp4"))) {
-									var options = {
-										hostname: episode.video_links[0].url,
-										method: 'GET'
-									}
 									var req = request(episode.video_links[0].url)
 									.on('response', function(res) {
 										file = fs.createWriteStream(path.join(basePath, dirName, episodeName + ".mp4"));
 										res.pipe(file);
 
 									})
+									.on('error', function() {
+										console.log("Failed to download: " + episodeName + " Please run the program again after it finishes");
+										iterator++;
+										fs.unlinkSync(path.join(basePath, dirName, episodeName + ".mp4"));
+									})
 									.on('end', function() {
-										console.log("Downloaded: " + path.join(basePath, dirName, episodeName));
+										if(fs.existsSync(path.join(basePath, dirName, episodeName + ".mp4"))) {
+											console.log("Downloaded: " + path.join(basePath, dirName, episodeName));
+										}
 										cb(null);
 									})
 								} else {
@@ -100,6 +104,12 @@ function getAnime() {
 							callback(null);
 						});
 					});
+				}, function(err) {
+					console.log("Finished downloading all anime");
+					if(iterator > 0) {
+						console.log("A total of " + iterator + "downloads failed, you can try to run the application again to see if they download");
+					}
+					process.exit();
 				});
 			}
 		});

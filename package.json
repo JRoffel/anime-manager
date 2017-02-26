@@ -11,7 +11,10 @@
   "license": "ISC",
   "dependencies": {
     "anime-scraper": "^2.1.5",
+    "async": "^2.1.5",
     "cheerio": "^0.22.0",
-    "cloudscraper": "^1.4.1"
+    "cloudscraper": "^1.4.1",
+    "request": "^2.79.0",
+    "sanitize-filename": "^1.6.1"
   }
 }

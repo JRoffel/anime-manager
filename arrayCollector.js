@@ -69,6 +69,7 @@ function gatherArray(noCache, topCallback) {
 						runningTemp = true
 						process.stdout.write("Running downloader halfway");
 						spawnProcesses(function() {
+							process.stdout.write("Done running partial downloads, removing downloads from queue");
 							var temp = storage.getItemSync('animeArray');
 							for(i = 0; i < maxProcesses*2; i++) {
 								temp.shift();

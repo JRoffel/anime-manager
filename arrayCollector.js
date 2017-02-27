@@ -16,7 +16,9 @@ var basePath = process.argv[3];
 var maxProcesses = process.argv[4] || 5;
 var animeArray = [];
 var iterator = 0;
+var runningTemp = false;
 storage.initSync();
+
 if(storage.getItemSync('animeArray') != null && storage.getItemSync('animeArray') != undefined && storage.getItemSync('animeArray') != [] && storage.getItemSync('animeArray').length != 0) {
 	process.stdout.write("Found partial list, downloading...");
 	spawnProcesses(function() {
@@ -62,6 +64,20 @@ function gatherArray(noCache, topCallback) {
 					if(!fs.existsSync(path.join(basePath, dirName))) {
 						fs.mkdirSync(path.join(basePath, dirName));
 					}
+
+					if(storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false) {
+						runningTemp = true
+						process.stdout.write("Running downloader halfway");
+						spawnProcesses(function() {
+							var temp = storage.getItemSync('animeArray');
+							for(i = 0; i < maxProcesses*2; i++) {
+								temp.shift();
+							}
+							storage.setItemSync('animeArray', temp);
+							runningTemp = false;
+						});
+					}
+
 					if(fs.existsSync(path.join(basePath, dirName, dirName + " Episode 001.mp4")) && noCache == false) {
 						process.stdout.write("Skipping " + dirName + " for now, because episode 1 exists");
 						callback();

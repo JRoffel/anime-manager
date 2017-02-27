@@ -22,14 +22,30 @@ if(storage.getItemSync('animeArray') != null && storage.getItemSync('animeArray'
 	spawnProcesses(function() {
 		storage.clearSync();
 		storage.setItemSync('animeArray', []);
-		gatherArray();
+		process.stdout.write("Finished partial list download!");
+		gatherArray(false, function() {
+			process.stdout.write("Finished cached list download!");
+			process.stdout.write("Starting noCache search!");
+			gatherArray(true, function() {
+				process.stdout.write("No more new episodes found!");
+				process.exit();
+			})
+		});
 	});
 } else {
 	storage.setItemSync('animeArray', []);
-	gatherArray();
+	process.stdout.write("No partial list found");
+	gatherArray(false, function() {
+		process.stdout.write("Finished cached list download!");
+		process.stdout.write("Starting noCache search!");
+		gatherArray(true, function() {
+			process.stdout.write("No more new episodes found!");
+			process.exit();
+		})
+	});
 }
 
-function gatherArray() {
+function gatherArray(noCache, topCallback) {
 	cloudscraper.get(process.argv[2], function(err, res, body) {
 		if(err) {
 			process.exit(1);
@@ -40,49 +56,45 @@ function gatherArray() {
 			})).get();
 
 			async.eachSeries(result, function(url, callback) {
-				process.stdout.write("Adding http://kissanime.ru" + url.url + " to job list!");
-				if(storage.getItemSync('animeArray').length > maxProcesses * 2) {
-					process.stdout.write("Running downloader on temp list");
-					spawnProcesses(function() {
-						var temp = storage.getItemSync('animeArray');
-						for (i = 0; i < maxProcesses*2; i++) {
-							temp.shift();
-						}
-						storage.setItemSync('animeArray', temp);
-					});
-				}
+				process.stdout.write("\nAdding http://kissanime.ru" + url.url + " to job list!");
 				Anime.fromUrl("http://kissanime.ru" + url.url).then(function(anime) {
 					dirName = fileSanitizer(anime.name);
 					if(!fs.existsSync(path.join(basePath, dirName))) {
 						fs.mkdirSync(path.join(basePath, dirName));
 					}
-					async.eachSeries(anime.episodes, function(epi, cb) {
-						epi.fetch().then(function(episode) {
-							episodeName = fileSanitizer(episode.name);
-							if(!fs.existsSync(path.join(basePath, dirName, episodeName + ".mp4"))) {
-								process.stdout.write("Adding " + episodeName + " to downloadList");
-								var temp = storage.getItemSync('animeArray');
-								temp.push({
-									url: episode.video_links[0],
-									fileName: path.join(basePath, dirName, episodeName + ".mp4")
-								});
-								storage.setItemSync('animeArray', temp);
-								cb(null);
-							} else {
-								process.stdout.write("Not adding " + episodeName + " because it already exists!");
-								cb(null);
-							}
-						});
-					}, function(err) {
-						callback(null);
-					})
+					if(fs.existsSync(path.join(basePath, dirName, dirName + " Episode 001.mp4")) && noCache == false) {
+						process.stdout.write("Skipping " + dirName + " for now, because episode 1 exists");
+						callback();
+					} else  {
+						async.eachSeries(anime.episodes, function(epi, cb) {
+							epi.fetch().then(function(episode) {
+								episodeName = fileSanitizer(episode.name);
+								if(!fs.existsSync(path.join(basePath, dirName, episodeName + ".mp4"))) {
+									process.stdout.write("Adding " + episodeName + " to downloadList");
+									var temp = storage.getItemSync('animeArray');
+									temp.push({
+										url: episode.video_links[0],
+										fileName: path.join(basePath, dirName, episodeName + ".mp4")
+									});
+									storage.setItemSync('animeArray', temp);
+									cb(null);
+								} else {
+									process.stdout.write("Not adding " + episodeName + " because it already exists!");
+									cb(null);
+								}
+							});
+						}, function(err) {
+							callback(null);
+						})
+					}
 				})
 			}, function(err) {
 				process.stdout.write("Indexed all anime in bookmarklist, spawning download processes now!");
 				spawnProcesses(function() {
 					storage.clearSync();
+					storage.setItemSync('animeArray', []);
 					process.stdout.write("Processed finished with " + iterator + " fails");
-					process.exit();
+					topCallback();
 				});
 			});
 		}

@@ -6,6 +6,7 @@ var request = require('request');
 var path = require('path');
 
 var basePath = process.argv[3];
+Anime.setDelay(10000);
 
 Anime.fromUrl(process.argv[2]).then(function(anime) {
 	dirName = fileSanitizer(anime.name);

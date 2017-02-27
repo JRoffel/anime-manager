@@ -17,7 +17,8 @@ var maxProcesses = process.argv[4] || 5;
 var animeArray = [];
 var iterator = 0;
 storage.initSync();
-if(storage.getItemSync('animeArray') != null || storage.getItemSync('animeArray') != undefined || storage.getItemSync('animeArray') != []) {
+if(storage.getItemSync('animeArray') != null && storage.getItemSync('animeArray') != undefined && storage.getItemSync('animeArray') != [] && storage.getItemSync('animeArray').length != 0) {
+	process.stdout.write("Found partial list, downloading...");
 	spawnProcesses(function() {
 		storage.clearSync();
 		storage.setItemSync('animeArray', []);
@@ -40,6 +41,16 @@ function gatherArray() {
 
 			async.eachSeries(result, function(url, callback) {
 				process.stdout.write("Adding http://kissanime.ru" + url.url + " to job list!");
+				if(storage.getItemSync('animeArray').length > maxProcesses * 2) {
+					process.stdout.write("Running downloader on temp list");
+					spawnProcesses(function() {
+						var temp = storage.getItemSync('animeArray');
+						for (i = 0; i < maxProcesses*2; i++) {
+							temp.shift();
+						}
+						storage.setItemSync('animeArray', temp);
+					});
+				}
 				Anime.fromUrl("http://kissanime.ru" + url.url).then(function(anime) {
 					dirName = fileSanitizer(anime.name);
 					if(!fs.existsSync(path.join(basePath, dirName))) {
@@ -79,25 +90,28 @@ function gatherArray() {
 }
 
 function spawnProcesses(callback) {
-	async.eachLimit(animeArray, maxProcesses, function(animeObject, callback) {
-		thread = child_process.spawn('node', ['singleDownloader.js', animeObject.url, animeObject.fileName]);
-		thread.stdout.on('data', (data) => {
-			process.stdout.write(data.toString());
-		});
+	async.eachLimit(storage.getItemSync('animeArray'), maxProcesses, function(animeObject, callback) {
+		if(!fs.existsSync(animeObject.fileName)) {
+			thread = child_process.spawn('node', ['singleDownloader.js', animeObject.url.url, animeObject.fileName]);
+			thread.stdout.on('data', (data) => {
+				process.stdout.write(data.toString());
+			});
 
-		thread.stderr.on('data', (data) => {
-			process.stdout.write(data.toString());
-			iterator++;
-		});
-
-		thread.on('close', (code) => {
-			if(code == 0) {
-				process.stdout.write("Anime saved in: " + animeObject.fileName);
-				callback();
-			} else if(code == 1) {
+			thread.stderr.on('data', (data) => {
+				process.stdout.write(data.toString());
 				iterator++;
-			}
-		});
+			});
+
+			thread.on('close', (code) => {
+				if(code == 0) {
+					callback();
+				} else if(code == 1) {
+					iterator++;
+				}
+			});			
+		} else {
+			callback();
+		}
 	}, function(err) {
 		callback();
 	});

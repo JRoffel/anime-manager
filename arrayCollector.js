@@ -10,6 +10,7 @@ var async = require('async');
 var request = require('request');
 var child_process = require('child_process');
 var storage = require('node-persist');
+var sleep = require('sleep');
 
 Anime.setDelay(10000);
 var basePath = process.argv[3];
@@ -65,21 +66,15 @@ function gatherArray(noCache, topCallback) {
 						fs.mkdirSync(path.join(basePath, dirName));
 					}
 
-					process.stdout.write("Evaluation");
-					process.stdout.write((storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false).toString());
-					process.stdout.write("\n\nValues");
-					console.log(storage.getItemSync('animeArray').length, maxProcesses*2, runningTemp);
-
 					if(storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false) {
 						runningTemp = true
 						process.stdout.write("Running downloader halfway");
-						spawnProcesses(function() {
-							process.stdout.write("Done running partial downloads, removing downloads from queue");
-							var temp = storage.getItemSync('animeArray');
-							for(i = 0; i < maxProcesses*2; i++) {
-								temp.shift();
-							}
-							storage.setItemSync('animeArray', temp);
+						var tempArray = storage.getItemSync('animeArray');
+						storage.setItemSync('animeArray', []);
+
+						spawnProcesses(tempArray, function() {
+							process.stdout.write("Done running partial downloads...");
+
 							runningTemp = false;
 						});
 					}
@@ -113,8 +108,12 @@ function gatherArray(noCache, topCallback) {
 					}
 				})
 			}, function(err) {
-				process.stdout.write("Indexed all anime in bookmarklist, spawning download processes now!");
-				spawnProcesses(function() {
+				process.stdout.write("Indexed all anime, waiting for download threads to free up")
+				while(runningTemp) {
+					sleep.sleep(10);
+				}
+				process.stdout.write("Download threads free, spawning download processes now!");
+				spawnProcesses(null, function() {
 					storage.clearSync();
 					storage.setItemSync('animeArray', []);
 					process.stdout.write("Processed finished with " + iterator + " fails");
@@ -125,8 +124,11 @@ function gatherArray(noCache, topCallback) {
 	});
 }
 
-function spawnProcesses(callback) {
-	async.eachLimit(storage.getItemSync('animeArray'), maxProcesses, function(animeObject, callback) {
+function spawnProcesses(downloadArray, callback) {
+	if(downloadArray == null) {
+		downloadArray = storage.getItemSync('animeArray');
+	}
+	async.eachLimit(downloadArray, maxProcesses, function(animeObject, callback) {
 		if(!fs.existsSync(animeObject.fileName)) {
 			thread = child_process.spawn('node', ['singleDownloader.js', animeObject.url.url, animeObject.fileName]);
 			thread.stdout.on('data', (data) => {

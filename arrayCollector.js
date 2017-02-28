@@ -70,7 +70,7 @@ function gatherArray(noCache, topCallback) {
 					process.stdout.write("\n\nValues");
 					process.stdout.write(storage.getItemSync('animeArray').length, maxProcesses*2, runningTemp.toString());
 
-					if(storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false) {
+					if(storage.getItemSync('animeArray').length.toString() > (maxProcesses*2).toString() && runningTemp == false) {
 						runningTemp = true
 						process.stdout.write("Running downloader halfway");
 						spawnProcesses(function() {

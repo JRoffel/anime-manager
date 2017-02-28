@@ -84,8 +84,23 @@ function gatherArray(noCache, topCallback) {
 						callback();
 					} else  {
 						async.eachSeries(anime.episodes, function(epi, cb) {
-							fetchEpi(epi, function() {
-								cb(null);
+							epi.fetch().then(function(episode) {
+								episodeName = fileSanitizer(episode.name);
+								if(!fs.existsSync(path.join(basePath, dirName, episodeName + ".mp4"))) {
+									process.stdout.write("Adding " + episodeName + " to downloadList");
+									var temp = storage.getItemSync('animeArray');
+									temp.push({
+										url: episode.video_links[0],
+										fileName: path.join(basePath, dirName, episodeName + ".mp4")
+									});
+									storage.setItemSync('animeArray', temp);
+									cb(null);
+								} else {
+									process.stdout.write("Not adding " + episodeName + " because it already exists!");
+									cb(null);
+								}
+							}, function(err) {
+								process.stdout.write("Could not establish connection to kissanime!");
 							});
 						}, function(err) {
 							callback(null);
@@ -131,32 +146,4 @@ function spawnProcesses(callback) {
 	}, function(err) {
 		callback();
 	});
-}
-
-function fetchEpi(epi, cb) {
-	var success = false;
-	while(success == false) {
-		try {
-			epi.fetch().then(function(episode) {
-				episodeName = fileSanitizer(episode.name);
-				if(!fs.existsSync(path.join(basePath, dirName, episodeName + ".mp4"))) {
-					process.stdout.write("Adding " + episodeName + " to downloadList");
-					var temp = storage.getItemSync('animeArray');
-					temp.push({
-						url: episode.video_links[0],
-						fileName: path.join(basePath, dirName, episodeName + ".mp4")
-					});
-					storage.setItemSync('animeArray', temp);
-					success = true;
-					cb(null);
-				} else {
-					process.stdout.write("Not adding " + episodeName + " because it already exists!");
-					success = true;
-					cb(null);
-				}
-			});
-		} catch(err) {
-			process.stdout.write("Cloudflare solution rejected, retrying...");
-		}
-	}
 }

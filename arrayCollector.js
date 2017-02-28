@@ -156,9 +156,7 @@ function fetchEpi(epi, cb) {
 				}
 			});
 		} catch(err) {
-			if (typeof(err) == "rejection" || typeof(err) == 'reject') {
-				process.stdout.write("Cloudflare solution rejected, retrying...");
-			}
+			process.stdout.write("Cloudflare solution rejected, retrying...");
 		}
 	}
 }

@@ -65,7 +65,9 @@ function gatherArray(noCache, topCallback) {
 						fs.mkdirSync(path.join(basePath, dirName));
 					}
 
+					process.stdout.write("Evaluation");
 					process.stdout.write(storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false);
+					process.stdout.write("\n\nValues");
 					process.stdout.write(storage.getItemSync('animeArray').length, maxProcesses*2, runningTemp);
 
 					if(storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false) {

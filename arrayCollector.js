@@ -84,7 +84,7 @@ function gatherArray(noCache, topCallback) {
 						callback();
 					} else  {
 						async.eachSeries(anime.episodes, function(epi, cb) {
-							fetchApi(epi, function() {
+							fetchEpi(epi, function() {
 								cb(null);
 							});
 						}, function(err) {

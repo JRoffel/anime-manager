@@ -66,9 +66,9 @@ function gatherArray(noCache, topCallback) {
 					}
 
 					process.stdout.write("Evaluation");
-					process.stdout.write(storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false);
+					process.stdout.write((storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false).toString());
 					process.stdout.write("\n\nValues");
-					process.stdout.write(storage.getItemSync('animeArray').length, maxProcesses*2, runningTemp);
+					process.stdout.write(storage.getItemSync('animeArray').length, maxProcesses*2, runningTemp.toString());
 
 					if(storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false) {
 						runningTemp = true

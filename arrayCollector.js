@@ -68,7 +68,7 @@ function gatherArray(noCache, topCallback) {
 					process.stdout.write("Evaluation");
 					process.stdout.write((storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false).toString());
 					process.stdout.write("\n\nValues");
-					process.stdout.write(storage.getItemSync('animeArray').length.toString(), (maxProcesses*2).toString(), runningTemp.toString());
+					console.log(storage.getItemSync('animeArray').length, maxProcesses*2, runningTemp);
 
 					if(storage.getItemSync('animeArray').length > maxProcesses*2 && runningTemp == false) {
 						runningTemp = true

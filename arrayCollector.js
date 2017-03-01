@@ -22,7 +22,7 @@ storage.initSync();
 
 if(storage.getItemSync('animeArray') != null && storage.getItemSync('animeArray') != undefined && storage.getItemSync('animeArray') != [] && storage.getItemSync('animeArray').length != 0) {
 	process.stdout.write("Found partial list, downloading...");
-	spawnProcesses(function() {
+	spawnProcesses(null, function() {
 		storage.clearSync();
 		storage.setItemSync('animeArray', []);
 		process.stdout.write("Finished partial list download!");
@@ -101,6 +101,7 @@ function gatherArray(noCache, topCallback) {
 								}
 							}, function(err) {
 								process.stdout.write("Could not establish connection to kissanime!");
+								cb(null);
 							});
 						}, function(err) {
 							callback(null);

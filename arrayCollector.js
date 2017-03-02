@@ -98,7 +98,7 @@ function spawnDownloadProcess(animeObject, callback) {
 
 	thread.stdout.pipe(process.stdout);
 	thread.stderr.pipe(process.stdout);
-	thread.on('close' (code) => {
+	thread.on('close', (code) => {
 		if(code != 0) {
 			iterator++;
 		}

@@ -44,7 +44,7 @@ cloudscraper.get(animeLink.toString(), function(err, res, body) {
 		})).get();
 
 		async.eachSeries(result, function(url, callback) {
-			process.stdout.write("Indexing episodes of http://kissanime.ru" +url.url+ " for downloadqueue");
+			process.stdout.write("Indexing episodes of http://kissanime.ru" +url.url+ " for downloadqueue \n");
 			Anime.fromUrl('http://kissanime.ru' + url.url).then(function(anime) {
 				dirName = fileSanitizer(anime.name);
 				
@@ -109,26 +109,26 @@ function spawnDownloadProcess(animeObject, callback) {
 function checkFileIntegrity(callback) {
 	fs.readdir(basePath, function(err, dirs) {
 		if(err) {
-			process.stdout.write("Unable to verify files!");
+			process.stdout.write("Unable to verify files! \n");
 			process.exit(1);
 		}
 
 		async.each(dirs, function(item, callback) {
 			if(!fs.lstatSync(item).isDirectory()) {
-				process.stdout.write("Tried to check a file as a directory, was this directory in use?");
+				process.stdout.write("Tried to check a file as a directory, was this directory in use? \n");
 				callback();
 			} else if(fs.lstatSync(item).isDirectory()) {
 				fs.readdir(item, function(err, files) {
 					if(err) {
-						process.stdout.write("Unable to read discovered directory: " + item + ". Do we not have access?");
+						process.stdout.write("Unable to read discovered directory: " + item + ". Do we not have access? \n");
 						callback();
 					} else {
 						async.each(files, function(episode, cb) {
 							if(fs.statSync(episode).size < 10000000.0) {
 								fs.unlinkSync(episode);
-								process.stdout.write("Removed " + episode + " because it failed the integrity checks!");
+								process.stdout.write("Removed " + episode + " because it failed the integrity checks! \n");
 							} else {
-								process.stdout.write("verified integrity of " + episode + ". Seems to be valid!");
+								process.stdout.write("Verified integrity of " + episode + ". Seems to be valid! \n");
 							}
 							cb();
 						}, function(err) {
@@ -138,7 +138,7 @@ function checkFileIntegrity(callback) {
 				});
 			}
 		}, function(err) {
-			process.stdout.write("Verified all items!");
+			process.stdout.write("Verified all items! \n");
 			callback();
 		})
 	})

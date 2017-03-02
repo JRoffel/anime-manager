@@ -45,11 +45,11 @@ function getAnime() {
 			}
 
 			downloadProcess.stdout.on('data', (data) => {
-				console.log(data.toString());
+				process.stdout.write(data.toString());
 			});
 
 			downloadProcess.stderr.on('data', (data) => {
-				console.error(data.toString());
+				process.stdout.write(data.toString());
 			});
 
 			downloadProcess.on('close', (code) => {

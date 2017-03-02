@@ -40,7 +40,7 @@ cloudscraper.get(animeLink.toString(), function(err, res, body) {
 	} else {
 		const $ = cheerio.load(body);
 		const result = $(".trAnime td .aAnime").map((i, element) => ({
-			url: $(element).attr('href');
+			url: $(element).attr('href')
 		})).get();
 
 		async.eachSeries(result, function(url, callback) {
@@ -71,22 +71,23 @@ cloudscraper.get(animeLink.toString(), function(err, res, body) {
 			});
 		}, function(err) {
 			process.stdout.write("Collection done: monitoring download progress \n");
-			setInterval(function() {
-				readline.clearLine();
-				readline.cursorTo(0);
-				process.stdout.write(animeArray.length + " episodes still in download queue");
-				if(activeProcesses < maxProcesses && animeArray.length != 0) {
-					activeProcesses++;
-					spawnDownloadProcess(animeArray.shift(), function(name, success) {
-						activeProcesses--;
-					});
-				} else if(animeArray.length == 0) {
-					process.stdout.write("All episodes downloaded, running integrity checks now!");
-					checkFileIntegrity(function() {
-						process.exit();
-					});
-				}
-			}, 5000);
+				var temp = setInterval(function() {
+					readline.clearLine();
+					readline.cursorTo(0);
+					process.stdout.write(animeArray.length + " episodes still in download queue");
+					if(activeProcesses < maxProcesses && animeArray.length != 0) {
+						activeProcesses++;
+						spawnDownloadProcess(animeArray.shift(), function(name, success) {
+							activeProcesses--;
+						});
+					} else if(animeArray.length == 0) {
+						clearInterval(temp);
+						process.stdout.write("All episodes downloaded, running integrity checks now!");
+						checkFileIntegrity(function() {
+							process.exit();
+						});
+					}
+				}, 5000);
 		});
 	}
 });

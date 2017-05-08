@@ -20,11 +20,11 @@ var maxProcesses = process.argv[4] || 5;
 var iterator = 0;
 var activeProcesses = 0;
 var animeArray = new ObservableArray();
-animeArray.on('change', function(ev) {
-	if(activeProcesses < maxProcesses && animeArray.length != 0) {
+animeArray.on('change', function (ev) {
+	if (activeProcesses < maxProcesses && animeArray.length != 0) {
 		activeProcesses++;
-		spawnDownloadProcess(animeArray.shift(), function(name, success) {
-			if(success) {
+		spawnDownloadProcess(animeArray.shift(), function (name, success) {
+			if (success) {
 				process.stdout.write("Successfully downloaded " + name);
 			} else {
 				process.stdout.write("Failed to download " + name);
@@ -34,8 +34,8 @@ animeArray.on('change', function(ev) {
 	}
 })
 
-cloudscraper.get(animeLink.toString(), function(err, res, body) {
-	if(err) {
+cloudscraper.get(animeLink.toString(), function (err, res, body) {
+	if (err) {
 		throw err;
 	} else {
 		const $ = cheerio.load(body);
@@ -43,17 +43,17 @@ cloudscraper.get(animeLink.toString(), function(err, res, body) {
 			url: $(element).attr('href')
 		})).get();
 
-		async.eachSeries(result, function(url, callback) {
-			process.stdout.write("Indexing episodes of http://kissanime.ru" +url.url+ " for downloadqueue \n");
-			Anime.fromUrl('http://kissanime.ru' + url.url).then(function(anime) {
+		async.eachSeries(result, function (url, callback) {
+			process.stdout.write("Indexing episodes of http://kissanime.ru" + url.url + " for downloadqueue \n");
+			Anime.fromUrl('http://kissanime.ru' + url.url).then(function (anime) {
 				dirName = fileSanitizer(anime.name);
-				
-				if(!fs.existsSync(path.join(basePath, dirName))) {
+
+				if (!fs.existsSync(path.join(basePath, dirName))) {
 					fs.mkdirSync(path.join(basePath, dirName));
 				}
 
-				async.eachSeries(anime.episodes, function(epi, cb) {
-					epi.fetch().then(function(episode) {
+				async.eachSeries(anime.episodes, function (epi, cb) {
+					epi.fetch().then(function (episode) {
 						episodeName = fileSanitizer(episode.name);
 						var episodePath = path.join(basePath, dirName, episodeName + ".mp4");
 
@@ -65,29 +65,29 @@ cloudscraper.get(animeLink.toString(), function(err, res, body) {
 						animeArray.push(animeObject);
 						cb();
 					});
-				}, function(err) {
+				}, function (err) {
 					callback();
 				});
 			});
-		}, function(err) {
+		}, function (err) {
 			process.stdout.write("Collection done: monitoring download progress \n");
-				var temp = setInterval(function() {
-					readline.clearLine();
-					readline.cursorTo(0);
-					process.stdout.write(animeArray.length + " episodes still in download queue");
-					if(activeProcesses < maxProcesses && animeArray.length != 0) {
-						activeProcesses++;
-						spawnDownloadProcess(animeArray.shift(), function(name, success) {
-							activeProcesses--;
-						});
-					} else if(animeArray.length == 0) {
-						clearInterval(temp);
-						process.stdout.write("All episodes downloaded, running integrity checks now!");
-						checkFileIntegrity(function() {
-							process.exit();
-						});
-					}
-				}, 5000);
+			var temp = setInterval(function () {
+				readline.clearLine();
+				readline.cursorTo(0);
+				process.stdout.write(animeArray.length + " episodes still in download queue");
+				if (activeProcesses < maxProcesses && animeArray.length != 0) {
+					activeProcesses++;
+					spawnDownloadProcess(animeArray.shift(), function (name, success) {
+						activeProcesses--;
+					});
+				} else if (animeArray.length == 0) {
+					clearInterval(temp);
+					process.stdout.write("All episodes downloaded, running integrity checks now!");
+					checkFileIntegrity(function () {
+						process.exit();
+					});
+				}
+			}, 5000);
 		});
 	}
 });
@@ -99,7 +99,7 @@ function spawnDownloadProcess(animeObject, callback) {
 	thread.stdout.pipe(process.stdout);
 	thread.stderr.pipe(process.stdout);
 	thread.on('close', (code) => {
-		if(code != 0) {
+		if (code != 0) {
 			iterator++;
 		}
 		callback(animeObject.path, (code == 0));
@@ -107,37 +107,37 @@ function spawnDownloadProcess(animeObject, callback) {
 }
 
 function checkFileIntegrity(callback) {
-	fs.readdir(basePath, function(err, dirs) {
-		if(err) {
+	fs.readdir(basePath, function (err, dirs) {
+		if (err) {
 			process.stdout.write("Unable to verify files! \n");
 			process.exit(1);
 		}
 
-		async.each(dirs, function(item, callback) {
-			if(!fs.lstatSync(item).isDirectory()) {
+		async.each(dirs, function (item, callback) {
+			if (!fs.lstatSync(item).isDirectory()) {
 				process.stdout.write("Tried to check a file as a directory, was this directory in use? \n");
 				callback();
-			} else if(fs.lstatSync(item).isDirectory()) {
-				fs.readdir(item, function(err, files) {
-					if(err) {
+			} else if (fs.lstatSync(item).isDirectory()) {
+				fs.readdir(item, function (err, files) {
+					if (err) {
 						process.stdout.write("Unable to read discovered directory: " + item + ". Do we not have access? \n");
 						callback();
 					} else {
-						async.each(files, function(episode, cb) {
-							if(fs.statSync(episode).size < 10000000.0) {
+						async.each(files, function (episode, cb) {
+							if (fs.statSync(episode).size < 10000000.0) {
 								fs.unlinkSync(episode);
 								process.stdout.write("Removed " + episode + " because it failed the integrity checks! \n");
 							} else {
 								process.stdout.write("Verified integrity of " + episode + ". Seems to be valid! \n");
 							}
 							cb();
-						}, function(err) {
+						}, function (err) {
 							callback();
 						});
 					}
 				});
 			}
-		}, function(err) {
+		}, function (err) {
 			process.stdout.write("Verified all items! \n");
 			callback();
 		})

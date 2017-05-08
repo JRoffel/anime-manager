@@ -10,7 +10,8 @@
   "author": "JRoffel",
   "license": "ISC",
   "dependencies": {
-    "anime-scraper": "^2.1.5",
+    "promise": "^7.1.1",
+    "anime-scraper": "^2.1.6",
     "async": "^2.1.5",
     "cheerio": "^0.22.0",
     "cloudscraper": "^1.4.1",

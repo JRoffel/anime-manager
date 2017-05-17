@@ -7,7 +7,7 @@ var path = require('path');
 
 var basePath = process.argv[3];
 var maxDownloads = process.argv[4] || 1;
-Anime.setDelay(10000);
+// Anime.setDelay(10000);
 
 Anime.fromUrl(process.argv[2]).then(function (anime) {
 	dirName = fileSanitizer(anime.name);
@@ -18,8 +18,8 @@ Anime.fromUrl(process.argv[2]).then(function (anime) {
 		epi.fetch().then(function (episode) {
 			console.log(episode);
 			episodeName = fileSanitizer(episode.name);
-			if (!fs.existsSync(path.join(basePath, dirName, episodeName + ".mp4")) && episode.video_links.length != 0) {
-				var req = request(episode.video_links[0].url)
+			if (!fs.existsSync(path.join(basePath, dirName, episodeName + ".mp4")) && episode.videoLinks.length != 0) {
+				var req = request(episode.videoLinks[0].url)
 					.on('response', function (res) {
 						file = fs.createWriteStream(path.join(basePath, dirName, episodeName + ".mp4"));
 						res.pipe(file);
@@ -34,7 +34,7 @@ Anime.fromUrl(process.argv[2]).then(function (anime) {
 						}
 						cb(null);
 					})
-			} else if (episode.video_links.length == 0) {
+			} else if (episode.videoLinks.length == 0) {
 				console.log("Skipping: " + episodeName + " because no downloadLink could be discovered");
 			} else {
 				process.stdout.write("Skipping: " + episodeName + " because it already exists");

@@ -19,7 +19,7 @@ let animeName = process.argv[2];
 let basePath = process.argv[3];
 let maxProcesses = process.argv[4];
 
-Anime.setDelay(10000);
+// Anime.setDelay(10000);
 
 console.log("Searching for anime, this can take up to 10 seconds to prevent kissanime blocking us");
 Anime.search(animeName).then((results) => {

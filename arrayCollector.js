@@ -13,7 +13,7 @@ var storage = require('node-persist');
 var sleep = require('sleep');
 var ObservableArray = require('observable-array');
 
-Anime.setDelay(10000);
+// Anime.setDelay(10000);
 var animeLink = process.argv[2];
 var basePath = process.argv[3];
 var maxProcesses = process.argv[4] || 5;
@@ -58,7 +58,7 @@ cloudscraper.get(animeLink.toString(), function (err, res, body) {
 						var episodePath = path.join(basePath, dirName, episodeName + ".mp4");
 
 						var animeObject = {
-							url: episode.video_links[0].url,
+							url: episode.videoLinks[0].url,
 							path: episodePath
 						};
 

@@ -10,7 +10,7 @@ var async = require('async');
 var request = require('request');
 var child_process = require('child_process');
 
-Anime.setDelay(10000);
+// Anime.setDelay(10000);
 
 var rl = readline.createInterface({
 	input: process.stdin,
@@ -112,7 +112,7 @@ function getAnime() {
 										epi.fetch().then(function (episode) {
 											episodeName = fileSanitizer(episode.name);
 											if (!fs.existsSync(path.join(basePath, dirName, episodeName + ".mp4"))) {
-												var req = request(episode.video_links[0].url)
+												var req = request(episode.videoLinks[0].url)
 													.on('response', function (res) {
 														file = fs.createWriteStream(path.join(basePath, dirName, episodeName + ".mp4"));
 														res.pipe(file);
